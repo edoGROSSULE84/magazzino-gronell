@@ -122,6 +122,9 @@ th { background: #f8fafc; }
   width: auto;
   object-fit: contain;
   margin: 0 auto 22px;
+  background: #ecfdf5;
+  padding: 10px 16px;
+  border-radius: 12px;
 }
 
 .login-card h1 {
