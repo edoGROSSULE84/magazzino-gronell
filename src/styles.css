@@ -164,3 +164,7 @@ th { background: #f8fafc; }
   padding: 12px;
   font-size: 14px;
 }
+.login-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
