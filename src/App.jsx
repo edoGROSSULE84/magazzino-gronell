@@ -450,17 +450,14 @@ th:nth-child(1), td:nth-child(1) {
 }
 
 th:nth-child(2), td:nth-child(2) {
-  min-width: 140px;
+  min-width: 240px;
+  max-width: 280px;
   text-align: left;
+  white-space: normal;
 }
 
 th:nth-child(3), td:nth-child(3) {
-  min-width: 80px;
-  text-align: left;
-}
-
-th:nth-child(4), td:nth-child(4) {
-  min-width: 110px;
+  min-width: 120px;
   text-align: left;
 }
 
@@ -469,7 +466,7 @@ th:last-child, td:last-child {
   font-weight: bold;
 }
       th { background: #166534; color: white; }
-      td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: left; }
+      
       </style></head><body>
       <h1>${title}</h1>
       <p>Data export: ${formatDate(new Date())} · Articoli inclusi: ${rowsSource.length}</p>
