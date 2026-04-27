@@ -10,7 +10,12 @@ import {
   query,
   setDoc,
 } from "firebase/firestore";
-import { db } from "./firebase";
+import { db, auth } from "./firebase";
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+} from "firebase/auth";
 
 const ukSizes = ["2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11", "11.5", "12", "12.5", "13"];
 
@@ -170,7 +175,80 @@ function SizeGrid({ title, sizes, minStock = 1 }) {
     </div>
   );
 }
+function LoginScreen() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [loading, setLoading] = useState(false);
 
+  const handleLogin = async () => {
+    setLoginError("");
+    setLoading(true);
+
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+    } catch (error) {
+      setLoginError("Email o password non corretti.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-white via-emerald-50 to-white flex items-center justify-center p-6">
+      <div className="w-full max-w-md rounded-3xl border border-emerald-100 bg-white p-8 shadow-sm">
+        <div className="mb-8 text-center">
+          <img
+            src="https://www.gronell.it/image/catalog/logo-Gronell.png"
+            alt="Gronell"
+            className="mx-auto mb-5 h-16 w-auto object-contain"
+          />
+          <h1 className="text-2xl font-bold text-emerald-900">
+            Accesso gestionale
+          </h1>
+          <p className="mt-2 text-sm text-slate-500">
+            Inserisci email e password per accedere al magazzino.
+          </p>
+        </div>
+
+        <div className="grid gap-4">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            className="rounded-xl border px-4 py-3"
+          />
+
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            className="rounded-xl border px-4 py-3"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleLogin();
+            }}
+          />
+
+          {loginError && (
+            <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+              {loginError}
+            </div>
+          )}
+
+          <button
+            onClick={handleLogin}
+            disabled={loading}
+            className="rounded-2xl bg-emerald-700 px-4 py-3 text-white disabled:opacity-60"
+          >
+            {loading ? "Accesso in corso..." : "Accedi"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 export default function App() {
   const [products, setProducts] = useState([]);
   const [movements, setMovements] = useState([]);
@@ -186,6 +264,8 @@ export default function App() {
   const [articleDialogOpen, setArticleDialogOpen] = useState(false);
   const [articleToDelete, setArticleToDelete] = useState(null);
   const [syncStatus, setSyncStatus] = useState("Connessione al database...");
+const [user, setUser] = useState(null);
+const [loadingAuth, setLoadingAuth] = useState(true);
 
   const [newArticle, setNewArticle] = useState({
     id: "",
@@ -207,6 +287,14 @@ export default function App() {
     note: "",
   });
 
+  useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    setUser(currentUser);
+    setLoadingAuth(false);
+  });
+
+  return () => unsubscribe();
+}, []);
   useEffect(() => {
     const unsubProducts = onSnapshot(collection(db, "products"), (snapshot) => {
       const list = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
@@ -563,10 +651,22 @@ th:last-child, td:last-child {
     return Array.from(map.values()).sort((a, b) => b.qty - a.qty);
   }, [filteredSales, products]);
 
+  if (loadingAuth) {
   return (
-    <div className="app-shell">
-      <div className="container">
-        {currentPage === "home" ? (
+    <div className="flex min-h-screen items-center justify-center bg-white text-slate-600">
+      Caricamento...
+    </div>
+  );
+}
+
+if (!user) {
+  return <LoginScreen />;
+}
+
+return (
+  <div className="app-shell">
+    <div className="container">
+      {currentPage === "home" ? (
           <div className="hero">
             <div className="hero-overlay"></div>
             <div className="hero-content">
