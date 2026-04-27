@@ -124,7 +124,6 @@ function buildRowsForPrint(products) {
     {
       code: product.articleCode,
       name: product.name,
-      category: product.category,
       store: "Negozio San Rocco",
       sizes: ukSizes.map((size) => product.stores?.centrale?.[size] ?? 0),
       total: totalFromSizes(product.stores?.centrale),
@@ -132,7 +131,6 @@ function buildRowsForPrint(products) {
     {
       code: product.articleCode,
       name: product.name,
-      category: product.category,
       store: "Negozio Verona",
       sizes: ukSizes.map((size) => product.stores?.outlet?.[size] ?? 0),
       total: totalFromSizes(product.stores?.outlet),
@@ -248,8 +246,19 @@ export default function App() {
   };
 
   const createArticle = async () => {
-    if (!newArticle.articleCode || !newArticle.name) return;
-    const normalizedId = newArticle.id || `ART-${String(products.length + 1).padStart(3, "0")}`;
+    if (!newArticle.articleCode || !newArticle.name) return; 
+    const codeExists = products.some(
+    (p) =>
+      p.articleCode?.toLowerCase() ===
+      newArticle.articleCode.trim().toLowerCase()
+  );
+
+  if (codeExists) {
+    alert("Esiste già un articolo con questo codice articolo.");
+    return;
+  }
+  const normalizedId =
+  newArticle.id?.trim() || `ART-${Date.now()}`;
     const article = {
       id: normalizedId,
       articleCode: newArticle.articleCode,
@@ -401,7 +410,6 @@ export default function App() {
       <tr>
         <th>Codice</th>
         <th>Articolo</th>
-        <th>Categoria</th>
         <th>Negozio</th>
         ${ukSizes.map((size) => `<th>UK ${size}</th>`).join("")}
         <th>Totale</th>
@@ -410,7 +418,6 @@ export default function App() {
       <tr>
         <td>${row.code}</td>
         <td>${row.name}</td>
-        <td>${row.category}</td>
         <td>${row.store}</td>
         ${row.sizes.map((qty) => `<td>${qty}</td>`).join("")}
         <td><strong>${row.total}</strong></td>
@@ -419,9 +426,48 @@ export default function App() {
     printWindow.document.write(`
       <html><head><title>${title}</title>
       <style>
+      @page {
+  size: A4 landscape;
+  margin: 10mm;
+}
       body { font-family: Arial, sans-serif; margin: 20px; }
-      table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-      th, td { border: 1px solid #cbd5e1; padding: 4px; font-size: 10px; text-align: center; }
+      table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+th, td {
+  border: 1px solid #cbd5e1;
+  padding: 5px 6px;
+  font-size: 9px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+th:nth-child(1), td:nth-child(1) {
+  min-width: 70px;
+}
+
+th:nth-child(2), td:nth-child(2) {
+  min-width: 140px;
+  text-align: left;
+}
+
+th:nth-child(3), td:nth-child(3) {
+  min-width: 80px;
+  text-align: left;
+}
+
+th:nth-child(4), td:nth-child(4) {
+  min-width: 110px;
+  text-align: left;
+}
+
+th:last-child, td:last-child {
+  min-width: 55px;
+  font-weight: bold;
+}
       th { background: #166534; color: white; }
       td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: left; }
       </style></head><body>
