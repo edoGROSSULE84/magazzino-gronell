@@ -194,60 +194,49 @@ function LoginScreen() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-emerald-50 to-white flex items-center justify-center p-6">
-      <div className="w-full max-w-md rounded-3xl border border-emerald-100 bg-white p-8 shadow-sm">
-        <div className="mb-8 text-center">
-          <img
-            src="https://www.gronell.it/image/catalog/logo-Gronell.png"
-            alt="Gronell"
-            className="mx-auto mb-5 h-16 w-auto object-contain"
-          />
-          <h1 className="text-2xl font-bold text-emerald-900">
-            Accesso gestionale
-          </h1>
-          <p className="mt-2 text-sm text-slate-500">
-            Inserisci email e password per accedere al magazzino.
-          </p>
-        </div>
+ return (
+  <div className="login-page">
+    <div className="login-card">
+      
+      <img
+        src="https://www.gronell.it/image/catalog/logo-Gronell.png"
+        alt="Gronell"
+        className="login-logo"
+      />
 
-        <div className="grid gap-4">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-            className="rounded-xl border px-4 py-3"
-          />
+      <h1>Accesso gestionale</h1>
+      <p>Inserisci email e password per accedere al magazzino.</p>
 
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            className="rounded-xl border px-4 py-3"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleLogin();
-            }}
-          />
+      <div className="login-form">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
+        />
 
-          {loginError && (
-            <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
-              {loginError}
-            </div>
-          )}
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleLogin();
+          }}
+        />
 
-          <button
-            onClick={handleLogin}
-            disabled={loading}
-            className="rounded-2xl bg-emerald-700 px-4 py-3 text-white disabled:opacity-60"
-          >
-            {loading ? "Accesso in corso..." : "Accedi"}
-          </button>
-        </div>
+        {loginError && (
+          <div className="login-error">{loginError}</div>
+        )}
+
+        <button onClick={handleLogin} disabled={loading}>
+          {loading ? "Accesso in corso..." : "Accedi"}
+        </button>
       </div>
+
     </div>
-  );
+  </div>
+);
 }
 export default function App() {
   const [products, setProducts] = useState([]);
@@ -695,6 +684,9 @@ return (
               <div>
                 <div className="topbar-actions">
                   <button className="btn btn-outline" onClick={() => setCurrentPage("home")}>Home</button>
+                  <button className="btn btn-outline" onClick={() => signOut(auth)}>
+  Esci
+</button>
                   <span className="status-pill">{syncStatus}</span>
                 </div>
                 <h1>Gestione Magazzino Calzature</h1>
