@@ -2,7 +2,7 @@
   "name": "Magazzino Gronell",
   "short_name": "Gronell",
   "description": "Gestionale magazzino e vendite Gronell",
-  "start_url": "/",
+  "start_url": "/?v=2",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#047857",
