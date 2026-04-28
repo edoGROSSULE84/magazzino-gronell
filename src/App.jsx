@@ -251,6 +251,7 @@ export default function App() {
   const [workspaceTab, setWorkspaceTab] = useState("inventario");
   const [movementDialogOpen, setMovementDialogOpen] = useState(false);
   const [articleDialogOpen, setArticleDialogOpen] = useState(false);
+  const [articleToEdit, setArticleToEdit] = useState(null);
   const [articleToDelete, setArticleToDelete] = useState(null);
   const [syncStatus, setSyncStatus] = useState("Connessione al database...");
 const [user, setUser] = useState(null);
@@ -748,6 +749,9 @@ return (
                         <button className="btn" onClick={() => openMovementForArticle(product.id, "vendita")}>Vendita</button>
                         <button className="btn" onClick={() => openMovementForArticle(product.id, "vendita_online")}>Vendita online</button>
                         <button className="btn" onClick={() => openMovementForArticle(product.id, "trasferimento")}>Trasferisci</button>
+                        <button className="btn btn-outline" onClick={() => setArticleToEdit(product)}>
+  Modifica
+</button>
                         <button className="btn btn-danger" onClick={() => requestDeleteArticle(product.id)}>Cancella</button>
                       </div>
                     </div>
@@ -910,6 +914,100 @@ return (
             </div>
           </div>
         )}
+        {articleToEdit && (
+  <div className="modal-backdrop">
+    <div className="modal small">
+      <h2>Modifica articolo</h2>
+
+      <div className="form-grid">
+        <input
+          className="input"
+          value={articleToEdit.articleCode || ""}
+          onChange={(e) =>
+            setArticleToEdit({ ...articleToEdit, articleCode: e.target.value })
+          }
+          placeholder="Codice articolo"
+        />
+
+        <input
+          className="input"
+          value={articleToEdit.name || ""}
+          onChange={(e) =>
+            setArticleToEdit({ ...articleToEdit, name: e.target.value })
+          }
+          placeholder="Nome modello"
+        />
+
+        <input
+          className="input"
+          value={articleToEdit.category || ""}
+          onChange={(e) =>
+            setArticleToEdit({ ...articleToEdit, category: e.target.value })
+          }
+          placeholder="Categoria"
+        />
+
+        <input
+          className="input"
+          value={articleToEdit.supplier || ""}
+          onChange={(e) =>
+            setArticleToEdit({ ...articleToEdit, supplier: e.target.value })
+          }
+          placeholder="Fornitore"
+        />
+
+        <input
+          className="input"
+          type="number"
+          value={articleToEdit.price || ""}
+          onChange={(e) =>
+            setArticleToEdit({ ...articleToEdit, price: e.target.value })
+          }
+          placeholder="Prezzo"
+        />
+
+        <div className="modal-actions full">
+          <button
+            className="btn btn-outline"
+            onClick={() => setArticleToEdit(null)}
+          >
+            Annulla
+          </button>
+
+          <button
+  className="btn"
+  onClick={async () => {
+    try {
+      if (!articleToEdit?.id) {
+        alert("Errore: articolo senza ID.");
+        return;
+      }
+
+      const updatedArticle = {
+        ...articleToEdit,
+        articleCode: articleToEdit.articleCode?.trim() || "",
+        name: articleToEdit.name?.trim() || "",
+        category: articleToEdit.category?.trim() || "Calzature",
+        supplier: articleToEdit.supplier?.trim() || "",
+        price: Number(articleToEdit.price || 0),
+      };
+
+      await setDoc(doc(db, "products", articleToEdit.id), updatedArticle);
+
+      setArticleToEdit(null);
+    } catch (error) {
+      console.error("Errore modifica articolo:", error);
+      alert("Errore durante il salvataggio delle modifiche.");
+    }
+  }}
+>
+  Salva modifiche
+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
       </div>
     </div>
   );
