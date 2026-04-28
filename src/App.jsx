@@ -276,6 +276,12 @@ const [loadingAuth, setLoadingAuth] = useState(true);
     toStore: "outlet",
     note: "",
   });
+const [bulkLoadQuantities, setBulkLoadQuantities] = useState(
+  ukSizes.reduce((acc, size) => {
+    acc[size] = "";
+    return acc;
+  }, {})
+);
 
   useEffect(() => {
   const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -408,10 +414,46 @@ const [loadingAuth, setLoadingAuth] = useState(true);
     let appliedQty = qty;
 
     if (newMovement.action === "carico") {
-      updated.stores[newMovement.store][newMovement.size] += qty;
-      movementLabel = "Carico";
-      movementStore = storeMeta[newMovement.store].label;
+  let hasValues = false;
+
+  for (const size of ukSizes) {
+    const value = Number(bulkLoadQuantities[size] || 0);
+
+    if (value > 0) {
+      updated.stores[newMovement.store][size] += value;
+      hasValues = true;
+
+      await addDoc(collection(db, "movements"), {
+        date: formatDate(new Date()),
+        type: "Carico",
+        product: updated.name,
+        articleCode: updated.articleCode,
+        size: size,
+        qty: value,
+        store: storeMeta[newMovement.store].label,
+        note: newMovement.note || "Carico multiplo",
+        createdAt: new Date(),
+      });
     }
+  }
+
+  if (!hasValues) return;
+
+  await setDoc(doc(db, "products", updated.id), updated);
+
+  // reset campi
+  setBulkLoadQuantities(
+    ukSizes.reduce((acc, size) => {
+      acc[size] = "";
+      return acc;
+    }, {})
+  );
+
+  setNewMovement((prev) => ({ ...prev, note: "" }));
+  setMovementDialogOpen(false);
+
+  return;
+}
     if (newMovement.action === "scarico") {
       const available = updated.stores[newMovement.store][newMovement.size];
       appliedQty = Math.min(available, qty);
@@ -871,16 +913,68 @@ return (
                   <option value="vendita_online">Vendita online</option>
                   <option value="trasferimento">Trasferimento</option>
                 </select>
-                <input className="input" type="number" min="1" value={newMovement.qty} onChange={(e) => setNewMovement((s) => ({ ...s, qty: e.target.value }))} />
-                <select className="input" value={newMovement.size} onChange={(e) => setNewMovement((s) => ({ ...s, size: e.target.value }))}>
-                  {ukSizes.map((size) => <option key={size} value={size}>UK {size}</option>)}
-                </select>
-                {newMovement.action !== "trasferimento" ? (
-                  <select className="input" value={newMovement.store} onChange={(e) => setNewMovement((s) => ({ ...s, store: e.target.value }))}>
-                    <option value="centrale">Negozio San Rocco</option>
-                    <option value="outlet">Negozio Verona</option>
-                  </select>
-                ) : (
+ {newMovement.action !== "carico" && (
+  <input
+    className="input"
+    type="number"
+    min="1"
+    value={newMovement.qty}
+    onChange={(e) =>
+      setNewMovement((s) => ({ ...s, qty: e.target.value }))
+    }
+  />
+)}
+
+{newMovement.action === "carico" ? (
+  <div className="form-grid full">
+  {ukSizes.map((size) => (
+  <div key={size} className="bulk-size-row">
+    <span className="bulk-size-label">UK {size}</span>
+
+    <input
+      className="input bulk-size-input"
+      type="number"
+      min="0"
+      placeholder="0"
+      value={bulkLoadQuantities[size]}
+      onChange={(e) =>
+        setBulkLoadQuantities((prev) => ({
+          ...prev,
+          [size]: e.target.value,
+        }))
+      }
+    />
+  </div>
+))}
+  </div>
+) : (
+  <select
+    className="input"
+    value={newMovement.size}
+    onChange={(e) =>
+      setNewMovement((s) => ({ ...s, size: e.target.value }))
+    }
+  >
+    {ukSizes.map((size) => (
+      <option key={size} value={size}>
+        UK {size}
+      </option>
+    ))}
+  </select>
+)}
+
+{newMovement.action !== "trasferimento" ? (
+  <select
+    className="input"
+    value={newMovement.store}
+    onChange={(e) =>
+      setNewMovement((s) => ({ ...s, store: e.target.value }))
+    }
+  >
+    <option value="centrale">Negozio San Rocco</option>
+    <option value="outlet">Negozio Verona</option>
+  </select>
+) : (
                   <>
                     <select className="input" value={newMovement.fromStore} onChange={(e) => setNewMovement((s) => ({ ...s, fromStore: e.target.value }))}>
                       <option value="centrale">Da San Rocco</option>
