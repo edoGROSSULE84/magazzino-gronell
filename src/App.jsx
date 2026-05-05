@@ -244,6 +244,7 @@ export default function App() {
   const [queryText, setQueryText] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [selectedArticleIds, setSelectedArticleIds] = useState([]);
+  const [expandedProductId, setExpandedProductId] = useState(null);
   const [salesPeriod, setSalesPeriod] = useState("today");
   const [customDateFrom, setCustomDateFrom] = useState("2026-04-01");
   const [customDateTo, setCustomDateTo] = useState("2026-04-21");
@@ -769,10 +770,20 @@ return (
                     {categories.map((category) => <option key={category} value={category}>{category === "all" ? "Tutte le categorie" : category}</option>)}
                   </select>
                 </div>
-                {filteredProducts.map((product) => {
+                {[...filteredProducts]
+  .sort((a, b) => a.name.localeCompare(b.name))
+  .map((product) => {
                   const total = totalFromSizes(product.stores?.centrale) + totalFromSizes(product.stores?.outlet);
                   return (
-                    <div key={product.id} className="panel product-card">
+                    <div
+  key={product.id}
+  className="panel product-card"
+  onClick={() =>
+    setExpandedProductId(
+      expandedProductId === product.id ? null : product.id
+    )
+  }
+>
                       <div className="product-meta">
                         <label className="check-row"><input type="checkbox" checked={selectedArticleIds.includes(product.id)} onChange={() => toggleArticleSelection(product.id)} /> Seleziona per PDF</label>
                         <h3>{product.name}</h3>
@@ -781,11 +792,14 @@ return (
                         <div className="muted">Fornitore: {product.supplier || "—"}</div>
                         <div className="muted">Prezzo: € {Number(product.price || 0).toFixed(2)} · Totale paia: {total}</div>
                       </div>
-                      <div className="product-stock">
-                        <SizeGrid title="Negozio San Rocco" sizes={product.stores?.centrale} minStock={product.minStock} />
-                        <SizeGrid title="Negozio Verona" sizes={product.stores?.outlet} minStock={product.minStock} />
-                      </div>
-                      <div className="product-actions">
+                      {expandedProductId === product.id && (
+  <>
+    <div className="product-stock">
+      <SizeGrid title="Negozio San Rocco" sizes={product.stores?.centrale} minStock={product.minStock} />
+      <SizeGrid title="Negozio Verona" sizes={product.stores?.outlet} minStock={product.minStock} />
+    </div>
+
+    <div className="product-actions">
                         <button className="btn btn-outline" onClick={() => openMovementForArticle(product.id, "carico")}>Carico</button>
                         <button className="btn btn-outline" onClick={() => openMovementForArticle(product.id, "scarico")}>Scarico</button>
                         <button className="btn" onClick={() => openMovementForArticle(product.id, "vendita")}>Vendita</button>
@@ -796,6 +810,8 @@ return (
 </button>
                         <button className="btn btn-danger" onClick={() => requestDeleteArticle(product.id)}>Cancella</button>
                       </div>
+                      </>
+)}
                     </div>
                   );
                 })}
