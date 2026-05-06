@@ -16,6 +16,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
+import * as XLSX from "xlsx";
 
 const ukSizes = ["2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11", "11.5", "12", "12.5", "13"];
 
@@ -510,6 +511,53 @@ const [bulkLoadQuantities, setBulkLoadQuantities] = useState(
     setSelectedArticleIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
   };
 
+  const exportBackupExcel = () => {
+  const productsRows = products.map((product) => {
+    const row = {
+      ID: product.id,
+      "Codice articolo": product.articleCode,
+      Articolo: product.name,
+      Categoria: product.category,
+      Fornitore: product.supplier,
+      Prezzo: Number(product.price || 0),
+      "Totale San Rocco": totalFromSizes(product.stores?.centrale),
+      "Totale Verona": totalFromSizes(product.stores?.outlet),
+      "Totale complessivo":
+        totalFromSizes(product.stores?.centrale) +
+        totalFromSizes(product.stores?.outlet),
+    };
+
+    ukSizes.forEach((size) => {
+      row[`San Rocco UK ${size}`] = product.stores?.centrale?.[size] ?? 0;
+      row[`Verona UK ${size}`] = product.stores?.outlet?.[size] ?? 0;
+    });
+
+    return row;
+  });
+
+  const movementsRows = movements.map((movement) => ({
+    Data: movement.date,
+    Tipo: movement.type,
+    Prodotto: movement.product,
+    "Codice articolo": movement.articleCode,
+    Taglia: movement.size ? `UK ${movement.size}` : "",
+    Quantità: movement.qty,
+    Negozio: movement.store,
+    Nota: movement.note,
+  }));
+
+  const workbook = XLSX.utils.book_new();
+
+  const productsSheet = XLSX.utils.json_to_sheet(productsRows);
+  const movementsSheet = XLSX.utils.json_to_sheet(movementsRows);
+
+  XLSX.utils.book_append_sheet(workbook, productsSheet, "Articoli");
+  XLSX.utils.book_append_sheet(workbook, movementsSheet, "Movimenti");
+
+  const today = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(workbook, `backup-magazzino-gronell-${today}.xlsx`);
+};
+
   const exportInventoryPdf = (mode = "all") => {
     const rowsSource = mode === "selected" ? products.filter((p) => selectedArticleIds.includes(p.id)) : products;
     if (mode === "selected" && selectedArticleIds.length === 0) {
@@ -739,6 +787,7 @@ return (
               <div className="toolbar">
                 <button className="btn btn-outline" onClick={() => exportInventoryPdf("all")}>PDF inventario completo</button>
                 <button className="btn btn-outline" onClick={() => exportInventoryPdf("selected")}>PDF articoli selezionati</button>
+                <button className="btn btn-outline" onClick={exportBackupExcel}>Backup Excel</button>
                 <button className="btn btn-outline" onClick={() => setArticleDialogOpen(true)}>Nuovo articolo</button>
                 <button className="btn" onClick={() => setMovementDialogOpen(true)}>Nuovo movimento</button>
               </div>
