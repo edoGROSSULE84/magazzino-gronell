@@ -425,7 +425,7 @@ const [bulkLoadQuantities, setBulkLoadQuantities] = useState(
       updated.stores[newMovement.store][size] += value;
       hasValues = true;
 
-      await addDoc(collection(db, "movements"), {
+       await addDoc(collection(db, "movements"), {
         date: formatDate(new Date()),
         type: "Carico",
         product: updated.name,
@@ -435,6 +435,7 @@ const [bulkLoadQuantities, setBulkLoadQuantities] = useState(
         store: storeMeta[newMovement.store].label,
         note: newMovement.note || "Carico multiplo",
         createdAt: new Date(),
+        operatore: user?.email || "Sconosciuto",
       });
     }
   }
@@ -501,6 +502,7 @@ const [bulkLoadQuantities, setBulkLoadQuantities] = useState(
       store: movementStore,
       note: newMovement.note || "Operazione manuale",
       createdAt: new Date(),
+      operatore: user?.email || "Sconosciuto",
     });
 
     setNewMovement((prev) => ({ ...prev, qty: 1, note: "" }));
@@ -544,6 +546,7 @@ const [bulkLoadQuantities, setBulkLoadQuantities] = useState(
     Quantità: movement.qty,
     Negozio: movement.store,
     Nota: movement.note,
+    Operatore: movement.operatore || "",
   }));
 
   const workbook = XLSX.utils.book_new();
@@ -873,12 +876,12 @@ return (
                 <div className="table-wrap">
                   <table>
                     <thead>
-                      <tr><th>Data</th><th>Tipo</th><th>Prodotto</th><th>Codice</th><th>Taglia</th><th>Q.tà</th><th>Negozio</th><th>Nota</th></tr>
+                      <tr><th>Data</th><th>Tipo</th><th>Prodotto</th><th>Codice</th><th>Taglia</th><th>Q.tà</th><th>Negozio</th><th>Nota</th><th>Operatore</th></tr>
                     </thead>
                     <tbody>
                       {movements.map((m) => (
                         <tr key={m.id}>
-                          <td>{m.date}</td><td>{m.type}</td><td>{m.product}</td><td>{m.articleCode}</td><td>UK {m.size}</td><td>{m.qty}</td><td>{m.store}</td><td>{m.note}</td>
+                          <td>{m.date}</td><td>{m.type}</td><td>{m.product}</td><td>{m.articleCode}</td><td>UK {m.size}</td><td>{m.qty}</td><td>{m.store}</td><td>{m.note}</td><td>{m.operatore || "—"}</td>
                         </tr>
                       ))}
                     </tbody>
