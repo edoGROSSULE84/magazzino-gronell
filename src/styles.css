@@ -22,9 +22,32 @@ button, input, select { font: inherit; }
   opacity: 0.08;
 }
 .hero-content { position: relative; z-index: 1; padding: 56px 32px; text-align: center; }
-.hero-logo { height: 80px; width: auto; object-fit: contain; }
+.hero-logo {
+  height: 90px;
+  width: auto;
+  object-fit: contain;
+  background: #047857;
+  padding: 14px 20px;
+  border-radius: 18px;
+  box-shadow: 0 12px 30px rgba(4, 120, 87, 0.25);
+  margin-bottom: 8px;
+}
 h1 { margin: 0 0 8px; }
 p { color: #475569; }
+
+.hero-content h1 {
+  font-size: 2.4rem;
+  color: #064e3b;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-top: 20px;
+}
+
+.hero-content p {
+  font-size: 17px;
+  max-width: 520px;
+  margin: 0 auto 20px;
+}
 .status-row, .topbar-actions, .toolbar, .modal-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .status-pill {
   display: inline-flex; align-items: center; border: 1px solid #bbf7d0; background: #fff; color: #166534;
