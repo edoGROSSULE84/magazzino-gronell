@@ -750,6 +750,9 @@ if (!user) {
 return (
   <div className="app-shell">
     <div className="container">
+      <div className="user-banner">
+        Benvenuto, <strong>{user?.email}</strong>
+      </div>
       {currentPage === "home" ? (
           <div className="hero">
             <div className="hero-overlay"></div>

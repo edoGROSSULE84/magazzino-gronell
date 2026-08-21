@@ -8,6 +8,18 @@ body { margin: 0; }
 button, input, select { font: inherit; }
 .app-shell { min-height: 100vh; background: #fff; }
 .container { max-width: 1320px; margin: 0 auto; padding: 20px; }
+
+.user-banner {
+  text-align: left;
+  color: #166534;
+  font-size: 14px;
+  margin-bottom: 14px;
+}
+
+.user-banner strong {
+  color: #064e3b;
+}
+
 .hero {
   position: relative;
   overflow: hidden;
