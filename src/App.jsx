@@ -251,6 +251,7 @@ export default function App() {
   const [customDateTo, setCustomDateTo] = useState("2026-04-21");
   const [currentPage, setCurrentPage] = useState("home");
   const [workspaceTab, setWorkspaceTab] = useState("inventario");
+  const [consultaStore, setConsultaStore] = useState(null);
   const [movementDialogOpen, setMovementDialogOpen] = useState(false);
   const [articleDialogOpen, setArticleDialogOpen] = useState(false);
   const [articleToEdit, setArticleToEdit] = useState(null);
@@ -773,8 +774,66 @@ return (
                   <h2>Consulta movimenti e vendite</h2>
                   <p>Visualizza lo storico e monitora vendite negozio e online.</p>
                 </button>
+                <button className="home-card" onClick={() => { setConsultaStore(null); setCurrentPage("consulta"); }}>
+                  <h2>Consulta magazzino</h2>
+                  <p>Visualizza tutti gli articoli e le quantità per taglia di un negozio.</p>
+                </button>
               </div>
             </div>
+          </div>
+        ) : currentPage === "consulta" ? (
+          <div className="panel-stack">
+            <div className="topbar">
+              <div>
+                <div className="topbar-actions">
+                  <button className="btn btn-outline" onClick={() => { setCurrentPage("home"); setConsultaStore(null); }}>Home</button>
+                  <button className="btn btn-outline" onClick={() => signOut(auth)}>Esci</button>
+                </div>
+                <h1>Consulta magazzino</h1>
+                <p>Visualizza tutti gli articoli e le quantità per taglia di un negozio.</p>
+              </div>
+            </div>
+
+            {!consultaStore ? (
+              <div className="panel">
+                <h2>Seleziona il negozio</h2>
+                <div className="modal-actions">
+                  <button className="btn" onClick={() => setConsultaStore("centrale")}>Negozio San Rocco</button>
+                  <button className="btn" onClick={() => setConsultaStore("outlet")}>Negozio Verona</button>
+                </div>
+              </div>
+            ) : (
+              <div className="panel">
+                <div className="topbar-actions">
+                  <button className="btn btn-outline" onClick={() => setConsultaStore(null)}>← Cambia negozio</button>
+                </div>
+                <h2>{storeMeta[consultaStore].label}</h2>
+                <div className="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Articolo</th>
+                        {ukSizes.map((size) => (
+                          <th key={size}>UK {size}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...products]
+                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .map((product) => (
+                          <tr key={product.id}>
+                            <td>{product.name}</td>
+                            {ukSizes.map((size) => (
+                              <td key={size}>{product.stores?.[consultaStore]?.[size] ?? 0}</td>
+                            ))}
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <>
