@@ -108,6 +108,10 @@ p { color: #475569; }
 table { width: 100%; border-collapse: collapse; }
 th, td { border-bottom: 1px solid #e2e8f0; padding: 10px; text-align: left; font-size: 14px; }
 th { background: #f8fafc; }
+
+.table-code { font-weight: 700; color: #0f172a; }
+.table-name { color: #64748b; font-size: 12px; margin-top: 2px; }
+
 .alert-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 .modal-backdrop {
   position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); display: grid; place-items: center; padding: 20px; z-index: 50;

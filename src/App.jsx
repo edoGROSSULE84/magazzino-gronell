@@ -809,10 +809,10 @@ return (
                 </div>
                 <h2>{storeMeta[consultaStore].label}</h2>
                 <div className="table-wrap">
-                  <table>
+                                    <table>
                     <thead>
                       <tr>
-                        <th>Articolo</th>
+                        <th>Codice articolo</th>
                         {ukSizes.map((size) => (
                           <th key={size}>UK {size}</th>
                         ))}
@@ -823,7 +823,10 @@ return (
                         .sort((a, b) => a.name.localeCompare(b.name))
                         .map((product) => (
                           <tr key={product.id}>
-                            <td>{product.name}</td>
+                            <td>
+                              <div className="table-code">{product.articleCode}</div>
+                              <div className="table-name">{product.name}</div>
+                            </td>
                             {ukSizes.map((size) => (
                               <td key={size}>{product.stores?.[consultaStore]?.[size] ?? 0}</td>
                             ))}
@@ -900,8 +903,8 @@ return (
 >
                       <div className="product-meta">
                         <label className="check-row"><input type="checkbox" checked={selectedArticleIds.includes(product.id)} onChange={() => toggleArticleSelection(product.id)} /> Seleziona per PDF</label>
-                        <h3>{product.name}</h3>
-                        <div className="muted">Codice articolo: {product.articleCode}</div>
+                        <h3>{product.articleCode}</h3>
+                        <div className="muted">Articolo: {product.name}</div>
                         <div className="muted">Categoria: {product.category}</div>
                         <div className="muted">Fornitore: {product.supplier || "—"}</div>
                         <div className="muted">Prezzo: € {Number(product.price || 0).toFixed(2)} · Totale paia: {total}</div>
