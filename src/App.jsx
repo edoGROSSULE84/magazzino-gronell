@@ -284,6 +284,7 @@ export default function App() {
   const [articleDialogOpen, setArticleDialogOpen] = useState(false);
   const [articleToEdit, setArticleToEdit] = useState(null);
   const [articleToDelete, setArticleToDelete] = useState(null);
+  const [movementToDelete, setMovementToDelete] = useState(null);
   const [syncStatus, setSyncStatus] = useState("Connessione al database...");
 const [user, setUser] = useState(null);
 const [loadingAuth, setLoadingAuth] = useState(true);
@@ -407,6 +408,48 @@ const [bulkLoadQuantities, setBulkLoadQuantities] = useState(
     setArticleToDelete(null);
   };
 
+  const requestDeleteMovement = (movement) => setMovementToDelete(movement);
+  const cancelDeleteMovement = () => setMovementToDelete(null);
+
+  const confirmDeleteMovement = async () => {
+    if (!movementToDelete) return;
+    const movement = movementToDelete;
+    const product = products.find((p) => p.articleCode === movement.articleCode);
+
+    if (!product) {
+      window.alert("Articolo non trovato (forse è stato cancellato): il movimento verrà rimosso dallo storico ma la giacenza non può essere ripristinata.");
+    } else {
+      const updated = {
+        ...product,
+        stores: {
+          centrale: { ...product.stores.centrale },
+          outlet: { ...product.stores.outlet },
+        },
+      };
+
+      if (movement.type === "Carico" && movement.storeKey) {
+        const current = updated.stores[movement.storeKey][movement.size] || 0;
+        updated.stores[movement.storeKey][movement.size] = Math.max(0, current - Number(movement.qty || 0));
+        await setDoc(doc(db, "products", updated.id), updated);
+      } else if ((movement.type === "Scarico" || movement.type === "Vendita" || movement.type === "Vendita online") && movement.storeKey) {
+        const current = updated.stores[movement.storeKey][movement.size] || 0;
+        updated.stores[movement.storeKey][movement.size] = current + Number(movement.qty || 0);
+        await setDoc(doc(db, "products", updated.id), updated);
+      } else if (movement.type === "Trasferimento" && movement.fromStoreKey && movement.toStoreKey) {
+        const currentTo = updated.stores[movement.toStoreKey][movement.size] || 0;
+        const currentFrom = updated.stores[movement.fromStoreKey][movement.size] || 0;
+        updated.stores[movement.toStoreKey][movement.size] = Math.max(0, currentTo - Number(movement.qty || 0));
+        updated.stores[movement.fromStoreKey][movement.size] = currentFrom + Number(movement.qty || 0);
+        await setDoc(doc(db, "products", updated.id), updated);
+      } else {
+        window.alert("Questo movimento non contiene i dati necessari per ripristinare automaticamente la giacenza (probabilmente è stato registrato prima di questo aggiornamento). Il movimento verrà comunque cancellato dallo storico, ma dovrai eventualmente correggere la giacenza a mano.");
+      }
+    }
+
+    await deleteDoc(doc(db, "movements", movement.id));
+    setMovementToDelete(null);
+  };
+
   const openMovementForArticle = (productId, action) => {
     const product = products.find((p) => p.id === productId);
     const preferredSize = ukSizes.find(
@@ -454,7 +497,7 @@ const [bulkLoadQuantities, setBulkLoadQuantities] = useState(
       updated.stores[newMovement.store][size] += value;
       hasValues = true;
 
-       await addDoc(collection(db, "movements"), {
+        await addDoc(collection(db, "movements"), {
         date: formatDate(new Date()),
         type: "Carico",
         product: updated.name,
@@ -462,6 +505,7 @@ const [bulkLoadQuantities, setBulkLoadQuantities] = useState(
         size: size,
         qty: value,
         store: storeMeta[newMovement.store].label,
+        storeKey: newMovement.store,
         note: newMovement.note || "Carico multiplo",
         createdAt: new Date(),
         operatore: user?.email || "Sconosciuto",
@@ -529,6 +573,9 @@ const [bulkLoadQuantities, setBulkLoadQuantities] = useState(
       size: newMovement.size,
       qty: appliedQty,
       store: movementStore,
+      storeKey: newMovement.action === "trasferimento" ? null : newMovement.store,
+      fromStoreKey: newMovement.action === "trasferimento" ? newMovement.fromStore : null,
+      toStoreKey: newMovement.action === "trasferimento" ? newMovement.toStore : null,
       note: newMovement.note || "Operazione manuale",
       createdAt: new Date(),
       operatore: user?.email || "Sconosciuto",
@@ -975,12 +1022,13 @@ return (
                 <div className="table-wrap">
                   <table>
                     <thead>
-                      <tr><th>Data</th><th>Tipo</th><th>Prodotto</th><th>Codice</th><th>Taglia</th><th>Q.tà</th><th>Negozio</th><th>Nota</th><th>Operatore</th></tr>
+                      <tr><th>Data</th><th>Tipo</th><th>Prodotto</th><th>Codice</th><th>Taglia</th><th>Q.tà</th><th>Negozio</th><th>Nota</th><th>Operatore</th><th></th></tr>
                     </thead>
                     <tbody>
                       {movements.map((m) => (
                         <tr key={m.id}>
-                         <td>{m.date}</td><td>{m.type}</td><td>{m.product}</td><td>{m.articleCode}</td><td>UK {m.size} (EU {ukToEu[m.size] || "—"})</td><td>{m.qty}</td><td>{m.store}</td><td>{m.note}</td><td>{m.operatore || "—"}</td>
+                          <td>{m.date}</td><td>{m.type}</td><td>{m.product}</td><td>{m.articleCode}</td><td>UK {m.size} (EU {ukToEu[m.size] || "—"})</td><td>{m.qty}</td><td>{m.store}</td><td>{m.note}</td><td>{m.operatore || "—"}</td>
+                          <td><button className="btn btn-danger" onClick={() => requestDeleteMovement(m)}>Cancella</button></td>
                         </tr>
                       ))}
                     </tbody>
@@ -1174,6 +1222,23 @@ return (
               <div className="modal-actions">
                 <button className="btn btn-outline" onClick={cancelDeleteArticle}>Annulla</button>
                 <button className="btn btn-danger" onClick={confirmDeleteArticle}>Cancella articolo</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {movementToDelete && (
+          <div className="modal-backdrop">
+            <div className="modal small">
+              <h2>Conferma cancellazione movimento</h2>
+              <p>
+                Stai per cancellare il movimento "{movementToDelete.type}" di {movementToDelete.qty} paia
+                (UK {movementToDelete.size}) per l'articolo {movementToDelete.articleCode}.
+                La giacenza verrà ripristinata automaticamente, quando possibile. L'operazione non è reversibile.
+              </p>
+              <div className="modal-actions">
+                <button className="btn btn-outline" onClick={cancelDeleteMovement}>Annulla</button>
+                <button className="btn btn-danger" onClick={confirmDeleteMovement}>Cancella movimento</button>
               </div>
             </div>
           </div>
