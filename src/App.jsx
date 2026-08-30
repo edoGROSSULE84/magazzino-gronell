@@ -853,7 +853,7 @@ return (
                     </thead>
                     <tbody>
                       {[...products]
-                        .sort((a, b) => a.name.localeCompare(b.name))
+                        .sort((a, b) => a.articleCode.localeCompare(b.articleCode))
                         .map((product) => (
                           <tr key={product.id}>
                             <td>
@@ -922,7 +922,7 @@ return (
                   </select>
                 </div>
                 {[...filteredProducts]
-  .sort((a, b) => a.name.localeCompare(b.name))
+  .sort((a, b) => a.articleCode.localeCompare(b.articleCode))
   .map((product) => {
                   const total = totalFromSizes(product.stores?.centrale) + totalFromSizes(product.stores?.outlet);
                   return (
