@@ -848,6 +848,7 @@ return (
                             <span className="table-name">EU {ukToEu[size]}</span>
                           </th>
                         ))}
+                        <th>Totale</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -862,6 +863,7 @@ return (
                             {ukSizes.map((size) => (
                               <td key={size}>{product.stores?.[consultaStore]?.[size] ?? 0}</td>
                             ))}
+                            <td><strong>{totalFromSizes(product.stores?.[consultaStore])}</strong></td>
                           </tr>
                         ))}
                     </tbody>
