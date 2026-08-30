@@ -20,6 +20,31 @@ import * as XLSX from "xlsx";
 
 const ukSizes = ["2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.5", "8", "8.5", "9", "9.5", "10", "10.5", "11", "11.5", "12", "12.5", "13"];
 
+const ukToEu = {
+  "2.5": "35",
+  "3": "36",
+  "3.5": "36.5",
+  "4": "37",
+  "4.5": "37.5",
+  "5": "38",
+  "5.5": "39",
+  "6": "39.5",
+  "6.5": "40",
+  "7": "41",
+  "7.5": "41.5",
+  "8": "42",
+  "8.5": "42.5",
+  "9": "43",
+  "9.5": "44",
+  "10": "44.5",
+  "10.5": "45",
+  "11": "46",
+  "11.5": "46.5",
+  "12": "47",
+  "12.5": "47.5",
+  "13": "48",
+};
+
 const makeSizeStock = (overrides = {}) =>
   ukSizes.reduce((acc, size) => {
     acc[size] = overrides[size] ?? 0;
@@ -167,7 +192,10 @@ function SizeGrid({ title, sizes, minStock = 1 }) {
           const low = qty < minStock;
           return (
             <div key={size} className={`size-cell ${low ? "low" : ""}`}>
-              <div className="size-label">UK {size}</div>
+              <div className="size-label">
+                <div>UK {size}</div>
+                <div className="size-eu">EU {ukToEu[size]}</div>
+              </div>
               <div className="size-qty">{qty}</div>
             </div>
           );
@@ -531,8 +559,8 @@ const [bulkLoadQuantities, setBulkLoadQuantities] = useState(
     };
 
     ukSizes.forEach((size) => {
-      row[`San Rocco UK ${size}`] = product.stores?.centrale?.[size] ?? 0;
-      row[`Verona UK ${size}`] = product.stores?.outlet?.[size] ?? 0;
+      row[`San Rocco UK ${size} (EU ${ukToEu[size]})`] = product.stores?.centrale?.[size] ?? 0;
+      row[`Verona UK ${size} (EU ${ukToEu[size]})`] = product.stores?.outlet?.[size] ?? 0;
     });
 
     return row;
@@ -543,7 +571,7 @@ const [bulkLoadQuantities, setBulkLoadQuantities] = useState(
     Tipo: movement.type,
     Prodotto: movement.product,
     "Codice articolo": movement.articleCode,
-    Taglia: movement.size ? `UK ${movement.size}` : "",
+    Taglia: movement.size ? `UK ${movement.size} (EU ${ukToEu[movement.size] || "-"})` : "",
     Quantità: movement.qty,
     Negozio: movement.store,
     Nota: movement.note,
@@ -584,7 +612,7 @@ const [bulkLoadQuantities, setBulkLoadQuantities] = useState(
         <th>Codice</th>
         <th>Articolo</th>
         <th>Negozio</th>
-        ${ukSizes.map((size) => `<th>UK ${size}</th>`).join("")}
+          ${ukSizes.map((size) => `<th>UK ${size}<br>EU ${ukToEu[size]}</th>`).join("")}
         <th>Totale</th>
       </tr>`;
     const tableBody = rows.map((row) => `
@@ -814,7 +842,11 @@ return (
                       <tr>
                         <th>Codice articolo</th>
                         {ukSizes.map((size) => (
-                          <th key={size}>UK {size}</th>
+                          <th key={size}>
+                            UK {size}
+                            <br />
+                            <span className="table-name">EU {ukToEu[size]}</span>
+                          </th>
                         ))}
                       </tr>
                     </thead>
@@ -946,7 +978,7 @@ return (
                     <tbody>
                       {movements.map((m) => (
                         <tr key={m.id}>
-                          <td>{m.date}</td><td>{m.type}</td><td>{m.product}</td><td>{m.articleCode}</td><td>UK {m.size}</td><td>{m.qty}</td><td>{m.store}</td><td>{m.note}</td><td>{m.operatore || "—"}</td>
+                         <td>{m.date}</td><td>{m.type}</td><td>{m.product}</td><td>{m.articleCode}</td><td>UK {m.size} (EU {ukToEu[m.size] || "—"})</td><td>{m.qty}</td><td>{m.store}</td><td>{m.note}</td><td>{m.operatore || "—"}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1062,7 +1094,10 @@ return (
   <div className="form-grid full">
   {ukSizes.map((size) => (
   <div key={size} className="bulk-size-row">
-    <span className="bulk-size-label">UK {size}</span>
+            <span className="bulk-size-label">
+          UK {size}
+          <span className="bulk-size-eu">EU {ukToEu[size]}</span>
+        </span>
 
     <input
       className="input bulk-size-input"
@@ -1088,9 +1123,9 @@ return (
       setNewMovement((s) => ({ ...s, size: e.target.value }))
     }
   >
-    {ukSizes.map((size) => (
+       {ukSizes.map((size) => (
       <option key={size} value={size}>
-        UK {size}
+        UK {size} (EU {ukToEu[size]})
       </option>
     ))}
   </select>
