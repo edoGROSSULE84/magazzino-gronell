@@ -883,8 +883,8 @@ return (
                   <button className="btn btn-outline" onClick={() => setConsultaStore(null)}>← Cambia negozio</button>
                 </div>
                 <h2>{storeMeta[consultaStore].label}</h2>
-                <div className="table-wrap">
-                                    <table>
+                <div className="table-wrap consulta-table-wrap">
+                  <table className="consulta-table">
                     <thead>
                       <tr>
                         <th>Codice articolo</th>

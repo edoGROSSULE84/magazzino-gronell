@@ -110,6 +110,18 @@ table { width: 100%; border-collapse: collapse; }
 th, td { border-bottom: 1px solid #e2e8f0; padding: 10px; text-align: left; font-size: 14px; }
 th { background: #f8fafc; }
 
+.consulta-table-wrap {
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.consulta-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f8fafc;
+}
+
 .table-code { font-weight: 700; color: #0f172a; }
 .table-name { color: #64748b; font-size: 12px; margin-top: 2px; }
 
